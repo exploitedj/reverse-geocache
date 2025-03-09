@@ -5,7 +5,9 @@
 
 // Define the GPS serial connection
 SoftwareSerial gpsSerial(6, 7); // RX, TX
-static const uint32_t GPSBaud = 4800;
+unsigned char buffer[256]; // buffer array for data recieve over serial port
+int count=0;
+static const uint32_t GPSBaud = 9600;
 
 // Create an instance of the TinyGPS++ object
 TinyGPSPlus gps;
@@ -14,14 +16,14 @@ TinyGPSPlus gps;
 LiquidCrystal_I2C lcd(0x20, 16, 2); // I2C address 0x20, 16 column and 2 rows
 
 // Define the relay pin
-const int relayPin = 9;
+const int relayPin = 0;
 
 // Define the push button pin
 const int buttonPin = 8;
 
 // Define the target destination coordinates
-const double targetLatitude = 37.7749; // Replace with your target latitude
-const double targetLongitude = -122.4194; // Replace with your target longitude
+const double targetLatitude = 42.277560; // Replace with your target latitude
+const double targetLongitude = -83.740880; // Replace with your target longitude
 
 // Define the distance threshold in meters (10 yards = 9.144 meters)
 const double distanceThreshold = 9.144;
@@ -60,19 +62,35 @@ void loop() {
     
     // Check if GPS data is valid
     if (gps.location.isValid()) {
+      Serial.print("GPSisValid");
       // Get the current coordinates
       double currentLatitude = gps.location.lat();
       double currentLongitude = gps.location.lng();
-      
+      // Define the target destination coordinates
+      const double targetLatitude = 42.277560; // Replace with your target latitude
+      const double targetLongitude = -83.740880; // Replace with your target longitude
+
       // Calculate the distance to the target destination
       double distance = gps.distanceBetween(currentLatitude, currentLongitude, targetLatitude, targetLongitude);
-      
+      String Distance = String(distance);
+      String CurrentLatitude = String(currentLatitude);
+      String CurrentLongitude = String(currentLongitude);
+      String TargetLatitude = String(targetLatitude);
+      String TargetLongitude = String(targetLongitude);
+      Serial.print("current distance : " + Distance);
+      Serial.print("current latitude : " + CurrentLatitude);
+      Serial.print("current logitude : " + CurrentLongitude);
+      Serial.print("target latitude : " + TargetLatitude);
+      Serial.print("target longitude : " + TargetLongitude);
+      delay(1000);
+
       // Display the distance on the LCD
       lcd.clear();
       lcd.print("Distance:");
       lcd.setCursor(0, 1);
       lcd.print(distance);
       lcd.print(" m");
+      delay(5000);
       
       // Check if the distance is within the threshold
       if (distance <= distanceThreshold) {
@@ -85,6 +103,7 @@ void loop() {
         digitalWrite(relayPin, LOW);
       }
     } else {
+      Serial.print("GPS error");
       // Display GPS error message
       lcd.clear();
       lcd.print("GPS error");
